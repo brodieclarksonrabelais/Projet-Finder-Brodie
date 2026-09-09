@@ -1,19 +1,8 @@
-// server.js
-require('dotenv').config();
-const express = require('express');
+// server.js (à la racine, à côté de package.json)
+import "dotenv/config";
+import express from "express";
 const app = express();
-
 app.use(express.json());
-
-app.get('/', (req, res) => {
-res.json({ message: 'API en ligne' });
-
-});
-
-const PORT = 3000;
-
-app.listen(PORT, () => {
-
-console.log(`API écoute sur http://localhost:${PORT}`);
-
-});
+app.get("/health", (req, res) => res.json({ ok: true }));
+const PORT = process.env.PORT ?? 3000;
+app.listen(PORT, () => console.log(`API sur http://localhost:${PORT}`));

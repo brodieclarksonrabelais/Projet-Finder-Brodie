@@ -2,7 +2,7 @@
 # [ ] étape non franchie (normal en cours de route) [~] garde : ne doit
 jamais être faux NON MESURABLE : on ne peut pas trancher, à compter à part
 # Spec Finder - Sprint 1 [MINIMAL]
-Équipe : ... Version : v1 du AAAA-MM-JJ (étape 1)
+Brodie : ... Version : v1 du AAAA-MM-JJ (étape 1)
 Règle : relue au début de chaque séance ; chaque amendement est daté dans le
 journal.
 ## Étape 1 - en mémoire

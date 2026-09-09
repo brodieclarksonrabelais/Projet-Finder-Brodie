@@ -28,7 +28,7 @@ corps JSON
 /hotels/abc répond 404
 [X] .env avec PORT et DATABASE_URL -> le fichier existe, il
 n'est pas commité
-[ ] README.md et api/.env.example -> un camarade démarre sans
+[X] README.md et api/.env.example -> un camarade démarre sans
 poser de question
 [ ] GET /chambres?prix_max=89 -> 200, 12 chambres ; sans
 critère, 32

@@ -12,25 +12,25 @@ journal.
 
 ## Étape 1 - en mémoire
 
-[X] npm run dev démarre sans erreur -> le terminal affiche
+[✓] npm run dev démarre sans erreur -> le terminal affiche
 l'adresse du serveur
-[X] GET /health -> 200, {"ok":true}
-[X] Kit chargé une seule fois au démarrage -> readFileSync hors des
+[✓] GET /health -> 200, {"ok":true}
+[✓] Kit chargé une seule fois au démarrage -> readFileSync hors des
 routes
-[X] GET /hotels -> 200, tableau de 3 hôtels
-[X] GET /hotels/:id -> 200 la fiche, ou 404 avec
+[✓] GET /hotels -> 200, tableau de 3 hôtels
+[✓] GET /hotels/:id -> 200 la fiche, ou 404 avec
 corps JSON
-[X] GET /chambres -> 200, tableau de 32
+[✓] GET /chambres -> 200, tableau de 32
 chambres
-[X] GET /chambres/:id -> 200 la fiche, ou 404 avec
+[✓] GET /chambres/:id -> 200 la fiche, ou 404 avec
 corps JSON
-[X] req.params.id converti avec Number() -> /hotels/1 répond 200,
+[✓] req.params.id converti avec Number() -> /hotels/1 répond 200,
 /hotels/abc répond 404
-[X] .env avec PORT et DATABASE_URL -> le fichier existe, il
+[✓] .env avec PORT et DATABASE_URL -> le fichier existe, il
 n'est pas commité
-[X] README.md et api/.env.example -> un camarade démarre sans
+[✓] README.md et api/.env.example -> un camarade démarre sans
 poser de question
-[ ] GET /chambres?prix_max=89 -> 200, 12 chambres ; sans
+[✓] GET /chambres?prix_max=89 -> 200, 12 chambres ; sans
 critère, 32
 
 ## Étapes 2 à 8 - déclarées, non franchies

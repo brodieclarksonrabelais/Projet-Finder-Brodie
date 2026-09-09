@@ -21,5 +21,5 @@ ses routes
 
 # api/.env.example (commité, valeurs vides)
 
-PORT=3000
-DATABASE_URL="mysql://root:@localhost:3306/finder"
+PORT=
+DATABASE_URL=

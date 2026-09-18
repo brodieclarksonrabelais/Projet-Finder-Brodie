@@ -37,21 +37,41 @@ app.get("/chambre/:id", async (req, res) => {
   res.json(chambre);
 });
 
-app.get("/chambres", async (req, res) => {
-  const { prixMax } = Number(req.params.id);
-  const where = {};
-  if (prixMax) where.prix_nuit = { lte: prixMax };
-  const chambresPasChere = await prisma.chambre.findMany({
-    where,
-    orderBy: { prix_nuit: "asc" },
+// app.get("/chambres", async (req, res) => {
+//   const { prixMax } = Number(req.params.id);
+//   const where = {};
+//   if (prixMax) where.prix_nuit = { lte: prixMax };
+//   const chambresPasChere = await prisma.chambre.findMany({
+//     where,
+//     orderBy: { prix_nuit: "asc" },
+//   });
+//   if (!chambresPasChere) {
+//     return res.status(404).json({ erreur: "Chambres introuvable" });
+//   }
+//   if (isNaN(prixMax)) {
+//     return res.status(400).json({ error: "Le prix doit être un nombre" });
+//   }
+//   res.json(chambresPasChere);
+// });
+
+app.get("/hotels/:id/chambres", async (req, res) => {
+  const { id } = req.params;
+  const hotelId = Number(id);
+
+  if (!Number.isInteger(hotelId)) {
+    return res.status(400).json({ erreur: "L'id doit être un nombre entier" });
+  }
+
+  const hotel = await prisma.hotel.findUnique({ where: { id: hotelId } });
+  if (!hotel) {
+    return res.status(404).json({ erreur: "Hotel introuvable" });
+  }
+
+  const chambres = await prisma.chambre.findMany({
+    where: { hotelId },
   });
-  if (!chambresPasChere) {
-    return res.status(404).json({ erreur: "Chambres introuvable" });
-  }
-  if (isNaN(prixMax)) {
-    return res.status(400).json({ error: "Le prix doit être un nombre" });
-  }
-  res.json(chambresPasChere);
+
+  res.json(chambres);
 });
 
 app.listen(process.env.PORT ?? 3000);

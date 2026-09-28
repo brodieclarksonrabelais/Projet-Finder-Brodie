@@ -4,10 +4,14 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import express from "express";
 import { PrismaClient } from "@prisma/client";
+// import bcrypt from 'bcrypt';
+// import jwt from 'jsonwebtoken';
 
 const app = express();
 const prisma = new PrismaClient();
 app.use(express.json());
+
+//////////////////////////////// GET /////////////////////////////////////
 
 app.get("/health", (req, res) => res.json({ ok: true }));
 app.get("/hotels", async (req, res) => {
@@ -37,22 +41,6 @@ app.get("/chambre/:id", async (req, res) => {
   res.json(chambre);
 });
 
-// app.get("/chambres", async (req, res) => {
-//   const { prixMax } = Number(req.params.id);
-//   const where = {};
-//   if (prixMax) where.prix_nuit = { lte: prixMax };
-//   const chambresPasChere = await prisma.chambre.findMany({
-//     where,
-//     orderBy: { prix_nuit: "asc" },
-//   });
-//   if (!chambresPasChere) {
-//     return res.status(404).json({ erreur: "Chambres introuvable" });
-//   }
-//   if (isNaN(prixMax)) {
-//     return res.status(400).json({ error: "Le prix doit être un nombre" });
-//   }
-//   res.json(chambresPasChere);
-// });
 
 app.get("/hotels/:id/chambres", async (req, res) => {
   const { id } = req.params;
@@ -73,5 +61,42 @@ app.get("/hotels/:id/chambres", async (req, res) => {
 
   res.json(chambres);
 });
+
+
+app.get("/chambres", async (req, res) => {
+  const { hotel, capacite, categorie, prixMax, date_debut, date_fin } = req.query;
+  const where = {};
+  if (hotel) where.hotelId = Number(hotel);
+  if (capacite) where.capacite = { gte: Number(capacite) };
+  if (categorie) where.categorie = categorie;
+  if (prixMax) where.prixNuit = { lte: Number(prixMax) };
+  if (date_debut && date_fin) {
+    where.reservations = {
+      none: {
+        statut: "confirmee",
+        dateDepart: { gt: new Date(date_debut) },
+        dateArrivee: { lt: new Date(date_fin) },
+      },
+    };
+  }
+  const chambres = await prisma.chambre.findMany({
+    where,
+    orderBy: { id: "asc" },
+  });
+  res.json(chambres);
+});
+
+//////////////////////////////// POST /////////////////////////////////////
+
+app.post('/auth/register', async (req, res) => {
+const { email, mot_de_passe_clair, nom, prenom, telephone, note} = req.body;
+const compte = await prisma.compte.create({
+  data:{email, mot_de_passe_clair: await bcrypt.hash(mot_de_passe_clair, 10), nom, prenom, telephone, note, role: 'voyageur'},
+  select: {id: true, email: true, nom: true, prenom: true, telephone: true, note: true}
+});
+
+res.status(201).json({ compte });
+});
+
 
 app.listen(process.env.PORT ?? 3000);

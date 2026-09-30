@@ -164,6 +164,32 @@ app.get(
   },
 );
 
+app.get(
+  "/reservations/mine",
+  authRequis,
+  exigeRole("voyageur"),
+  async (req, res) => {
+    const reservations = await prisma.reservation.findMany({
+      where: { voyageurId: req.user.userId },
+      orderBy: { dateArrivee: "asc" },
+    });
+    res.json(reservations);
+  },
+);
+
+app.get(
+  "/reservations/received",
+  authRequis,
+  exigeRole("hotelier"),
+  async (req, res) => {
+    const reservations = await prisma.reservation.findMany({
+      where: { chambre: { hotelId: req.user.hotelId } },
+      orderBy: { dateArrivee: "asc" },
+    });
+    res.json(reservations);
+  },
+);
+
 //////////////////////////////// POST /////////////////////////////////////
 
 app.post("/auth/register", valider(schemaInscription), async (req, res) => {
@@ -296,6 +322,32 @@ app.patch(
       data: { ...req.body },
     });
     res.json({ currentVoyageur });
+  },
+);
+
+app.get(
+  "/reservations/:id",
+  authRequis,
+  exigeRole("hotelier"),
+  async (req, res) => {
+    const reservation = await prisma.reservation.findUnique({
+      where: { id: Number(req.params.id) },
+    });
+
+    if (!reservation)
+      return res.status(404).json({ erreur: "Réservation introuvable" });
+
+    if (reservation.chambre.hotelId !== req.user.hotelId) {
+      return res.status(403).json({
+        erreur: "Vous ne pouvez pas accéder aux réservations d'un autre hôtel",
+      });
+    }
+
+    const currentReservation = await prisma.reservation.update({
+      where: { id: Number(req.params.id) },
+      data: { ...req.body },
+    });
+    res.json(currentReservation);
   },
 );
 

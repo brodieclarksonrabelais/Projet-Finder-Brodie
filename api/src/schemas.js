@@ -40,7 +40,6 @@ export const schemaRechercheChambre = z.object({
 
 export const schemaCreationReservation = z.object({
   chambreId: z.number().int().positive(),
-  voyageurId: z.number().int().positive(),
   nbPersonnes: z.number().int().positive(),
   statut: z.enum(["en_attente", "confirmee", "refusee", "annulee"]).optional(),
   dateArrivee: z.coerce.date(),

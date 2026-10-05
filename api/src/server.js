@@ -14,6 +14,7 @@ import {
   schemaModificationChambre,
   schemaRechercheChambre,
   schemaCreationReservation,
+  schemaModificationReservation,
 } from "./schemas.js";
 
 const app = express();
@@ -62,6 +63,17 @@ export function validerQuery(schema) {
     req.validatedQuery = resultat.data;
     next();
   };
+}
+
+const TRANSITIONS_AUTORISEES = {
+  en_attente: ["confirmee", "refusee", "annulee"],
+  confirmee: ["annulee"],
+  refusee: [],
+  annulee: [],
+};
+
+function transitionValide(statutActuel, statutVoulu) {
+  return (TRANSITIONS_AUTORISEES[statutActuel] || []).includes(statutVoulu);
 }
 
 //////////////////////////////// GET /////////////////////////////////////
@@ -325,13 +337,15 @@ app.patch(
   },
 );
 
-app.get(
+app.patch(
   "/reservations/:id",
   authRequis,
   exigeRole("hotelier"),
+  valider(schemaModificationReservation),
   async (req, res) => {
     const reservation = await prisma.reservation.findUnique({
       where: { id: Number(req.params.id) },
+      include: { chambre: true },
     });
 
     if (!reservation)
@@ -340,6 +354,13 @@ app.get(
     if (reservation.chambre.hotelId !== req.user.hotelId) {
       return res.status(403).json({
         erreur: "Vous ne pouvez pas accéder aux réservations d'un autre hôtel",
+      });
+    }
+
+    if (!transitionValide(reservation.statut, req.body.statut)) {
+      return res.status(409).json({
+        erreur: `passage de ${reservation.statut} a
+${req.body.statut} interdit`,
       });
     }
 

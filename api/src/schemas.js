@@ -45,3 +45,6 @@ export const schemaCreationReservation = z.object({
   dateArrivee: z.coerce.date(),
   dateDepart: z.coerce.date(),
 });
+
+export const schemaModificationReservation =
+  schemaCreationReservation.partial();

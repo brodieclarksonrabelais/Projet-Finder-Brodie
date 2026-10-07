@@ -16,6 +16,8 @@ import {
   schemaCreationReservation,
   schemaModificationReservation,
 } from "./schemas.js";
+import swaggerJsdoc from "swagger-jsdoc";
+import swaggerUi from "swagger-ui-express";
 
 const app = express();
 const prisma = new PrismaClient();
@@ -23,6 +25,7 @@ app.use(express.json());
 
 //////////////////////////////// Middlewares /////////////////////////////////////
 
+//vérification du token JWT et récupération des informations de l'utilisateur
 function authRequis(req, res, next) {
   const entete = req.headers.authorization || "";
   const token = entete.replace("Bearer ", "");
@@ -34,6 +37,7 @@ function authRequis(req, res, next) {
   }
 }
 
+// Vérification du rôle de l'utilisateur
 function exigeRole(...roles) {
   return (req, res, next) =>
     roles.includes(req.user.role)
@@ -41,7 +45,7 @@ function exigeRole(...roles) {
       : res.status(403).json({ erreur: "acces refuse" });
 }
 
-// Pour les routes avec un corps (POST, PATCH)
+// Validation des données d'entrée avec Zod
 export function valider(schema) {
   return (req, res, next) => {
     const resultat = schema.safeParse(req.body ?? {});
@@ -53,7 +57,7 @@ export function valider(schema) {
   };
 }
 
-// Pour les paramètres d'URL (GET)
+// Validation des paramètres de requête avec Zod
 export function validerQuery(schema) {
   return (req, res, next) => {
     const resultat = schema.safeParse(req.query);
@@ -72,18 +76,72 @@ const TRANSITIONS_AUTORISEES = {
   annulee: [],
 };
 
+// Vérifie si la transition de statut est valide
 function transitionValide(statutActuel, statutVoulu) {
   return (TRANSITIONS_AUTORISEES[statutActuel] || []).includes(statutVoulu);
 }
 
 //////////////////////////////// GET /////////////////////////////////////
 
+/**
+ * @openapi
+ * /health:
+ *   get:
+ *     summary: Le serveur est debout
+ *     tags: [Santé]
+ *     responses:
+ *       200:
+ *         description: OK
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 ok: { type: boolean, example: true }
+ */
 app.get("/health", (req, res) => res.json({ ok: true }));
+
+/**
+ * @openapi
+ * /hotels:
+ *   get:
+ *     summary: Récupérer la liste des hôtels
+ *     description: Réservé aux hôteliers.
+ *     tags: [Hôtels]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200: { description: OK }
+ *       401: { description: Jeton absent ou invalide }
+ *       403: { description: Accès refusé }
+ */
 app.get("/hotels", authRequis, exigeRole("hotelier"), async (req, res) => {
   res.json(await prisma.hotel.findMany());
 });
 //app.get("/chambres", (req, res) => res.json(chambres));
 
+/**
+ * @openapi
+ * /hotel/{id}:
+ *   get:
+ *     summary: Récupérer les détails d'un hôtel
+ *     description: Réservé aux hôteliers.
+ *     tags: [Hôtels]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: integer }
+ *         description: Identifiant de l'hôtel
+ *     responses:
+ *       200: { description: OK }
+ *       400: { description: L'id doit être un nombre entier }
+ *       401: { description: Jeton absent ou invalide }
+ *       403: { description: Accès refusé }
+ *       404: { description: Hotel introuvable }
+ */
 app.get("/hotel/:id", authRequis, exigeRole("hotelier"), async (req, res) => {
   const { id } = Number(req.params);
   const hotel = await prisma.hotel.findUnique({ where: { id: Number(id) } });
@@ -94,18 +152,62 @@ app.get("/hotel/:id", authRequis, exigeRole("hotelier"), async (req, res) => {
   res.json(hotel);
 });
 
+/**
+ * @openapi
+ * /chambre/{id}:
+ *   get:
+ *     summary: Récupérer les détails d'une chambre
+ *     description: Réservé aux hôteliers.
+ *     tags: [Chambres]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: integer }
+ *         description: Identifiant de la chambre
+ *     responses:
+ *       200: { description: OK }
+ *       400: { description: L'id doit être un nombre entier }
+ *       401: { description: Jeton absent ou invalide }
+ *       403: { description: Accès refusé }
+ *       404: { description: Chambre introuvable }
+ */
 app.get("/chambre/:id", authRequis, exigeRole("hotelier"), async (req, res) => {
-  const { id } = Number(req.params);
-  const chambre = await prisma.chambre.findUnique({
-    where: { id: Number(id) },
-  });
+  const id = Number(req.params.id);
+
   if (!Number.isInteger(id)) {
     return res.status(400).json({ erreur: "L'id doit être un nombre entier" });
   }
+
+  const chambre = await prisma.chambre.findUnique({ where: { id } });
   if (!chambre) return res.status(404).json({ erreur: "Chambre introuvable" });
   res.json(chambre);
 });
 
+/**
+ * @openapi
+ * /hotels/{id}/chambres:
+ *   get:
+ *     summary: Récupérer la liste des chambres d'un hôtel
+ *     description: Réservé aux hôteliers.
+ *     tags: [Hôtels]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: integer }
+ *         description: Identifiant de l'hôtel
+ *     responses:
+ *       200: { description: OK }
+ *       400: { description: L'id doit être un nombre entier }
+ *       401: { description: Jeton absent ou invalide }
+ *       403: { description: Accès refusé }
+ *       404: { description: Hotel introuvable }
+ */
 app.get(
   "/hotels/:id/chambres",
   authRequis,
@@ -133,6 +235,49 @@ app.get(
   },
 );
 
+/**
+ * @openapi
+ * /chambres:
+ *   get:
+ *     summary: Récupérer la liste des chambres
+ *     description: >
+ *       Réservé aux hôteliers. Tous les filtres sont optionnels.
+ *       Si date_debut et date_fin sont fournies, seules les chambres
+ *       sans réservation confirmée sur cette période sont renvoyées.
+ *     tags: [Chambres]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: hotel
+ *         schema: { type: integer }
+ *         description: Identifiant de l'hôtel
+ *       - in: query
+ *         name: capacite
+ *         schema: { type: integer }
+ *         description: Capacité minimale
+ *       - in: query
+ *         name: categorie
+ *         schema: { type: string }
+ *         description: Catégorie de la chambre
+ *       - in: query
+ *         name: prixMax
+ *         schema: { type: number }
+ *         description: Prix maximum par nuit
+ *       - in: query
+ *         name: date_debut
+ *         schema: { type: string, format: date }
+ *         description: Début de la période souhaitée
+ *       - in: query
+ *         name: date_fin
+ *         schema: { type: string, format: date }
+ *         description: Fin de la période souhaitée
+ *     responses:
+ *       200: { description: OK }
+ *       400: { description: Paramètres de requête invalides }
+ *       401: { description: Jeton absent ou invalide }
+ *       403: { description: Accès refusé }
+ */
 app.get(
   "/chambres",
   authRequis,
@@ -163,6 +308,30 @@ app.get(
   },
 );
 
+/**
+ * @openapi
+ * /voyageurs/me:
+ *   get:
+ *     summary: Récupérer les détails de l'utilisateur connecté
+ *     description: Réservé aux voyageurs.
+ *     tags: [Voyageurs]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: OK
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id: { type: integer }
+ *                 email: { type: string, format: email }
+ *                 nom: { type: string }
+ *                 telephone: { type: string }
+ *       401: { description: Jeton absent ou invalide }
+ *       403: { description: Accès refusé }
+ */
 app.get(
   "/voyageurs/me",
   authRequis,
@@ -176,6 +345,20 @@ app.get(
   },
 );
 
+/**
+ * @openapi
+ * /reservations/mine:
+ *   get:
+ *     summary: Récupérer les réservations d'un voyageur
+ *     description: Réservé aux voyageurs. Triées par date d'arrivée croissante.
+ *     tags: [Réservations]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200: { description: OK }
+ *       401: { description: Jeton absent ou invalide }
+ *       403: { description: Accès refusé }
+ */
 app.get(
   "/reservations/mine",
   authRequis,
@@ -189,6 +372,20 @@ app.get(
   },
 );
 
+/**
+ * @openapi
+ * /reservations/received:
+ *   get:
+ *     summary: Récupérer les réservations reçues par un hôtelier
+ *     description: Réservé aux hôteliers. Triées par date d'arrivée croissante.
+ *     tags: [Réservations]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200: { description: OK }
+ *       401: { description: Jeton absent ou invalide }
+ *       403: { description: Accès refusé }
+ */
 app.get(
   "/reservations/received",
   authRequis,
@@ -204,6 +401,30 @@ app.get(
 
 //////////////////////////////// POST /////////////////////////////////////
 
+/**
+ * @openapi
+ * /auth/register:
+ *   post:
+ *     summary: S'inscrire en tant que voyageur
+ *     tags: [Authentification]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [email, motDePasseClair, nom]
+ *             properties:
+ *               email: { type: string, format: email }
+ *               motDePasseClair: { type: string, format: password }
+ *               nom: { type: string }
+ *               prenom: { type: string }
+ *               telephone: { type: string }
+ *               note: { type: string }
+ *     responses:
+ *       201: { description: Compte créé }
+ *       400: { description: Données invalides }
+ */
 app.post("/auth/register", valider(schemaInscription), async (req, res) => {
   const { email, motDePasseClair, nom, prenom, telephone, note } = req.body;
   const compte = await prisma.compte.create({
@@ -229,6 +450,34 @@ app.post("/auth/register", valider(schemaInscription), async (req, res) => {
   res.status(201).json({ compte });
 });
 
+/**
+ * @openapi
+ * /auth/login:
+ *   post:
+ *     summary: Se connecter au système
+ *     tags: [Authentification]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [email, motDePasseClair]
+ *             properties:
+ *               email: { type: string, format: email }
+ *               motDePasseClair: { type: string, format: password }
+ *     responses:
+ *       200:
+ *         description: Connexion réussie
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 token: { type: string, description: Jeton JWT valable 24h }
+ *       400: { description: Données invalides }
+ *       401: { description: Identifiants invalides }
+ */
 app.post("/auth/login", valider(schemaConnexion), async (req, res) => {
   const { email, motDePasseClair } = req.body;
   const compte = await prisma.compte.findUnique({ where: { email } });
@@ -239,15 +488,56 @@ app.post("/auth/login", valider(schemaConnexion), async (req, res) => {
     return res.status(401).json({ erreur: "identifiants invalides" });
   }
   const token = jwt.sign(
-    { userId: compte.id, role: compte.role },
+    { userId: compte.id, role: compte.role, hotelId: compte.hotelId },
     process.env.JWT_SECRET,
     { expiresIn: "24h" },
   );
   res.json({ token });
 });
 
+/**
+ * @openapi
+ * /auth/logout:
+ *   post:
+ *     summary: Se déconnecter du système
+ *     tags: [Authentification]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       204: { description: Déconnexion réussie }
+ *       401: { description: Jeton absent ou invalide }
+ */
 app.post("/auth/logout", authRequis, (req, res) => res.status(204).end());
 
+/**
+ * @openapi
+ * /chambres:
+ *   post:
+ *     summary: Créer une nouvelle chambre
+ *     description: Réservé aux hôteliers.
+ *     tags: [Chambres]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [hotelId, numero, categorie, capacite, prixNuit]
+ *             properties:
+ *               hotelId: { type: integer }
+ *               numero: { type: string }
+ *               categorie: { type: string }
+ *               capacite: { type: integer }
+ *               prixNuit: { type: number }
+ *               description: { type: string }
+ *     responses:
+ *       201: { description: Chambre créée }
+ *       400: { description: Données invalides }
+ *       401: { description: Jeton absent ou invalide }
+ *       403: { description: Accès refusé }
+ */
 app.post(
   "/chambres",
   authRequis,
@@ -263,6 +553,34 @@ app.post(
   },
 );
 
+/**
+ * @openapi
+ * /reservations:
+ *   post:
+ *     summary: Créer une nouvelle réservation
+ *     description: Réservé aux voyageurs. La réservation est créée au statut en_attente.
+ *     tags: [Réservations]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [chambreId, dateArrivee, dateDepart, nbPersonnes]
+ *             properties:
+ *               chambreId: { type: integer }
+ *               dateArrivee: { type: string, format: date }
+ *               dateDepart: { type: string, format: date }
+ *               nbPersonnes: { type: integer }
+ *               demandeSpeciale: { type: string }
+ *     responses:
+ *       201: { description: Réservation créée }
+ *       400: { description: Données invalides }
+ *       401: { description: Jeton absent ou invalide }
+ *       403: { description: Accès refusé }
+ */
 app.post(
   "/reservations",
   authRequis,
@@ -288,6 +606,40 @@ app.post(
 
 //////////////////////////////// PATCH /////////////////////////////////////
 
+/**
+ * @openapi
+ * /chambres/{id}:
+ *   patch:
+ *     summary: Modifier une chambre
+ *     description: Réservé aux hôteliers, uniquement pour les chambres de leur hôtel.
+ *     tags: [Chambres]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: integer }
+ *         description: Identifiant de la chambre
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               numero: { type: string }
+ *               categorie: { type: string }
+ *               capacite: { type: integer }
+ *               prixNuit: { type: number }
+ *               description: { type: string }
+ *     responses:
+ *       200: { description: Chambre mise à jour }
+ *       400: { description: Données invalides }
+ *       401: { description: Jeton absent ou invalide }
+ *       403: { description: Chambre d'un autre hôtel ou accès refusé }
+ *       404: { description: Chambre introuvable }
+ */
 app.patch(
   "/chambres/:id",
   authRequis,
@@ -316,6 +668,33 @@ app.patch(
   },
 );
 
+/**
+ * @openapi
+ * /voyageurs/me:
+ *   patch:
+ *     summary: Modifier les détails de l'utilisateur connecté
+ *     description: Réservé aux voyageurs.
+ *     tags: [Voyageurs]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               nom: { type: string }
+ *               prenom: { type: string }
+ *               telephone: { type: string }
+ *               note: { type: string }
+ *     responses:
+ *       200: { description: Compte mis à jour }
+ *       400: { description: Données invalides }
+ *       401: { description: Jeton absent ou invalide }
+ *       403: { description: Accès refusé }
+ *       404: { description: Voyageur introuvable }
+ */
 app.patch(
   "/voyageurs/me",
   authRequis,
@@ -337,6 +716,43 @@ app.patch(
   },
 );
 
+/**
+ * @openapi
+ * /reservations/{id}:
+ *   patch:
+ *     summary: Modifier le statut d'une réservation
+ *     description: >
+ *       Réservé aux hôteliers, uniquement pour les réservations de leur hôtel.
+ *       Transitions autorisées : en_attente vers confirmee, refusee ou annulee ;
+ *       confirmee vers annulee.
+ *     tags: [Réservations]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: integer }
+ *         description: Identifiant de la réservation
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [statut]
+ *             properties:
+ *               statut:
+ *                 type: string
+ *                 enum: [en_attente, confirmee, refusee, annulee]
+ *     responses:
+ *       200: { description: Réservation mise à jour }
+ *       400: { description: Données invalides }
+ *       401: { description: Jeton absent ou invalide }
+ *       403: { description: Réservation d'un autre hôtel ou accès refusé }
+ *       404: { description: Réservation introuvable }
+ *       409: { description: Transition de statut interdite }
+ */
 app.patch(
   "/reservations/:id",
   authRequis,
@@ -374,6 +790,25 @@ ${req.body.statut} interdit`,
 
 //////////////////////////////// DELETE /////////////////////////////////////
 
+/**
+ * @openapi
+ * /chambres/{id}:
+ *   delete:
+ *     summary: Supprimer une chambre
+ *     tags: [Chambres]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: integer }
+ *         description: Identifiant de la chambre
+ *     responses:
+ *       200: { description: Chambre supprimée }
+ *       401: { description: Jeton absent ou invalide }
+ *       404: { description: Chambre introuvable }
+ */
 app.delete("/chambres/:id", authRequis, async (req, res) => {
   const chambre = await prisma.chambre.findUnique({
     where: { id: Number(req.params.id) },
@@ -387,5 +822,77 @@ app.delete("/chambres/:id", authRequis, async (req, res) => {
   });
   res.json({ chambres });
 });
+
+/**
+ * @openapi
+ * /reservations/{id}:
+ *   delete:
+ *     summary: Annuler une réservation
+ *     description: >
+ *       Réservé aux voyageurs, uniquement pour leurs propres réservations.
+ *       La réservation n'est pas supprimée : son statut passe à annulee.
+ *     tags: [Réservations]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: integer }
+ *         description: Identifiant de la réservation
+ *     responses:
+ *       200: { description: Réservation annulée }
+ *       401: { description: Jeton absent ou invalide }
+ *       403: { description: Réservation d'un autre voyageur ou accès refusé }
+ *       404: { description: Réservation introuvable }
+ *       409: { description: Transition de statut interdite }
+ */
+app.delete(
+  "/reservations/:id",
+  authRequis,
+  exigeRole("voyageur"),
+  async (req, res) => {
+    const reservation = await prisma.reservation.findUnique({
+      where: { id: Number(req.params.id) },
+    });
+
+    if (!reservation)
+      return res.status(404).json({ erreur: "Réservation introuvable" });
+
+    if (reservation.voyageurId !== req.user.userId) {
+      return res.status(403).json({
+        erreur:
+          "Vous ne pouvez pas accéder aux réservations de quelqu'un d'autre",
+      });
+    }
+
+    if (!transitionValide(reservation.statut, "annulee")) {
+      return res.status(409).json({
+        erreur: `passage de ${reservation.statut} a annulee interdit`,
+      });
+    }
+
+    const currentReservation = await prisma.reservation.update({
+      where: { id: Number(req.params.id) },
+      data: { statut: "annulee" },
+    });
+    res.json(currentReservation);
+  },
+);
+
+const spec = swaggerJsdoc({
+  definition: {
+    openapi: "3.0.0",
+    info: { title: "API finder", version: "1.0.0" },
+    components: {
+      securitySchemes: {
+        bearerAuth: { type: "http", scheme: "bearer", bearerFormat: "JWT" },
+      },
+    },
+  },
+  apis: ["./src/**/*.js", "./src/server.js", "./server.js"],
+});
+
+app.use("/docs", swaggerUi.serve, swaggerUi.setup(spec));
 
 app.listen(process.env.PORT ?? 3000);

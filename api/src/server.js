@@ -87,11 +87,11 @@ function transitionValide(statutActuel, statutVoulu) {
  * @openapi
  * /health:
  *   get:
- *     summary: Le serveur est debout
+ *     summary: Le serveur est lancé
  *     tags: [Santé]
  *     responses:
  *       200:
- *         description: OK
+ *         description: Le serveur fonctionne
  *         content:
  *           application/json:
  *             schema:
@@ -111,7 +111,7 @@ app.get("/health", (req, res) => res.json({ ok: true }));
  *     security:
  *       - bearerAuth: []
  *     responses:
- *       200: { description: OK }
+ *       200: { description: La liste des hôtels }
  *       401: { description: Jeton absent ou invalide }
  *       403: { description: Accès refusé }
  */
@@ -136,7 +136,7 @@ app.get("/hotels", authRequis, exigeRole("hotelier"), async (req, res) => {
  *         schema: { type: integer }
  *         description: Identifiant de l'hôtel
  *     responses:
- *       200: { description: OK }
+ *       200: { description: L'hôtel demandé }
  *       400: { description: L'id doit être un nombre entier }
  *       401: { description: Jeton absent ou invalide }
  *       403: { description: Accès refusé }
@@ -168,7 +168,7 @@ app.get("/hotel/:id", authRequis, exigeRole("hotelier"), async (req, res) => {
  *         schema: { type: integer }
  *         description: Identifiant de la chambre
  *     responses:
- *       200: { description: OK }
+ *       200: { description: La chambre demandée }
  *       400: { description: L'id doit être un nombre entier }
  *       401: { description: Jeton absent ou invalide }
  *       403: { description: Accès refusé }
@@ -202,7 +202,7 @@ app.get("/chambre/:id", authRequis, exigeRole("hotelier"), async (req, res) => {
  *         schema: { type: integer }
  *         description: Identifiant de l'hôtel
  *     responses:
- *       200: { description: OK }
+ *       200: { description: Les chambres de l'hôtel demandé }
  *       400: { description: L'id doit être un nombre entier }
  *       401: { description: Jeton absent ou invalide }
  *       403: { description: Accès refusé }
@@ -273,7 +273,7 @@ app.get(
  *         schema: { type: string, format: date }
  *         description: Fin de la période souhaitée
  *     responses:
- *       200: { description: OK }
+ *       200: { description: Les chambres correspondant aux filtres }
  *       400: { description: Paramètres de requête invalides }
  *       401: { description: Jeton absent ou invalide }
  *       403: { description: Accès refusé }
@@ -319,7 +319,7 @@ app.get(
  *       - bearerAuth: []
  *     responses:
  *       200:
- *         description: OK
+ *         description: Le profil du voyageur connecté
  *         content:
  *           application/json:
  *             schema:
@@ -355,7 +355,7 @@ app.get(
  *     security:
  *       - bearerAuth: []
  *     responses:
- *       200: { description: OK }
+ *       200: { description: Les réservations du voyageur connecté }
  *       401: { description: Jeton absent ou invalide }
  *       403: { description: Accès refusé }
  */
@@ -382,7 +382,7 @@ app.get(
  *     security:
  *       - bearerAuth: []
  *     responses:
- *       200: { description: OK }
+ *       200: { description: Les réservations reçues par l'hôtel }
  *       401: { description: Jeton absent ou invalide }
  *       403: { description: Accès refusé }
  */

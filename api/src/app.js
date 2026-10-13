@@ -1,7 +1,5 @@
-// server.js (à la racine, à côté de package.json)
+
 import "dotenv/config";
-import { readFileSync } from "node:fs";
-import path from "node:path";
 import express from "express";import chambresRoutes from './routes/chambres.js';
 import hotelsRoutes from './routes/hotel.js';
 import reservationsRoutes from './routes/reservations.js';
@@ -19,8 +17,6 @@ app.use('/voyageurs', voyageursRoutes);
 
 const app = express();
 app.use(express.json());
-
-
 
 const spec = swaggerJsdoc({
   definition: {

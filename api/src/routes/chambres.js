@@ -1,7 +1,11 @@
 import { Router } from 'express';
 import prisma from '../prisma.js';
 import { authRequis, exigeRole, valider, validerQuery } from '../middlewares.js';
-import {schemaRechercheChambre, schemaCreationChambre} from '../schemas.js';
+import {
+  schemaRechercheChambre,
+  schemaCreationChambre,
+  schemaModificationChambre,
+} from '../schemas.js';
 
 const router = Router();
 
@@ -29,7 +33,7 @@ const router = Router();
  *       403: { description: Accès refusé }
  *       404: { description: Chambre introuvable }
  */
-app.get("/chambre/:id", authRequis, exigeRole("hotelier"), async (req, res) => {
+router.get("/chambre/:id", authRequis, exigeRole("hotelier"), async (req, res) => {
   const id = Number(req.params.id);
 
   if (!Number.isInteger(id)) {
@@ -86,7 +90,7 @@ app.get("/chambre/:id", authRequis, exigeRole("hotelier"), async (req, res) => {
  *       401: { description: Jeton absent ou invalide }
  *       403: { description: Accès refusé }
  */
-app.get("/chambres", validerQuery(schemaRechercheChambre), async (req, res) => {
+router.get("/chambres", validerQuery(schemaRechercheChambre), async (req, res) => {
   const { hotel, capacite, categorie, prixMax, date_debut, date_fin } =
     req.validatedQuery;
   const where = {};
@@ -141,7 +145,7 @@ app.get("/chambres", validerQuery(schemaRechercheChambre), async (req, res) => {
  *       401: { description: Jeton absent ou invalide }
  *       403: { description: Accès refusé }
  */
-app.post(
+router.post(
   "/chambres",
   authRequis,
   exigeRole("hotelier"),
@@ -192,7 +196,7 @@ app.post(
  *       403: { description: Chambre d'un autre hôtel ou accès refusé }
  *       404: { description: Chambre introuvable }
  */
-app.patch(
+router.patch(
   "/chambres/:id",
   authRequis,
   exigeRole("hotelier"),
@@ -241,7 +245,7 @@ app.patch(
  *       401: { description: Jeton absent ou invalide }
  *       404: { description: Chambre introuvable }
  */
-app.delete("/chambres/:id", authRequis, async (req, res) => {
+router.delete("/chambres/:id", authRequis, async (req, res) => {
   const chambre = await prisma.chambre.findUnique({
     where: { id: Number(req.params.id) },
   });

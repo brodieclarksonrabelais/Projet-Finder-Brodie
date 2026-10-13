@@ -20,7 +20,7 @@ const router = Router();
  *       401: { description: Jeton absent ou invalide }
  *       403: { description: Accès refusé }
  */
-app.get("/hotels", authRequis, exigeRole("hotelier"), async (req, res) => {
+router.get("/hotels", async (req, res) => {
   res.json(await prisma.hotel.findMany());
 });
 //app.get("/chambres", (req, res) => res.json(chambres));
@@ -47,7 +47,7 @@ app.get("/hotels", authRequis, exigeRole("hotelier"), async (req, res) => {
  *       403: { description: Accès refusé }
  *       404: { description: Hotel introuvable }
  */
-app.get("/hotel/:id", authRequis, exigeRole("hotelier"), async (req, res) => {
+router.get("/hotel/:id", async (req, res) => {
   const { id } = Number(req.params);
   const hotel = await prisma.hotel.findUnique({ where: { id: Number(id) } });
   if (!Number.isInteger(id)) {
@@ -79,7 +79,7 @@ app.get("/hotel/:id", authRequis, exigeRole("hotelier"), async (req, res) => {
  *       403: { description: Accès refusé }
  *       404: { description: Hotel introuvable }
  */
-app.get(
+router.get(
   "/hotels/:id/chambres",
   authRequis,
   exigeRole("hotelier"),

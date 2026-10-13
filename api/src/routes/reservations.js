@@ -21,7 +21,7 @@ const router = Router();
  *       401: { description: Jeton absent ou invalide }
  *       403: { description: Accès refusé }
  */
-app.get(
+router.get(
   "/reservations/mine",
   authRequis,
   exigeRole("voyageur"),
@@ -48,7 +48,7 @@ app.get(
  *       401: { description: Jeton absent ou invalide }
  *       403: { description: Accès refusé }
  */
-app.get(
+router.get(
   "/reservations/received",
   authRequis,
   exigeRole("hotelier"),
@@ -91,7 +91,7 @@ app.get(
  *       401: { description: Jeton absent ou invalide }
  *       403: { description: Accès refusé }
  */
-app.post(
+router.post(
   "/reservations",
   authRequis,
   exigeRole("voyageur"),
@@ -153,7 +153,7 @@ app.post(
  *       404: { description: Réservation introuvable }
  *       409: { description: Transition de statut interdite }
  */
-app.patch(
+router.patch(
   "/reservations/:id",
   authRequis,
   exigeRole("hotelier"),
@@ -214,7 +214,7 @@ ${req.body.statut} interdit`,
  *       404: { description: Réservation introuvable }
  *       409: { description: Transition de statut interdite }
  */
-app.delete(
+router.delete(
   "/reservations/:id",
   authRequis,
   exigeRole("voyageur"),

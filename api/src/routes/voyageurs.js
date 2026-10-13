@@ -31,7 +31,7 @@ const router = Router();
  *       401: { description: Jeton absent ou invalide }
  *       403: { description: Accès refusé }
  */
-app.get(
+router.get(
   "/voyageurs/me",
   authRequis,
   exigeRole("voyageur"),
@@ -73,7 +73,7 @@ app.get(
  *       403: { description: Accès refusé }
  *       404: { description: Voyageur introuvable }
  */
-app.patch(
+router.patch(
   "/voyageurs/me",
   authRequis,
   exigeRole("voyageur"),

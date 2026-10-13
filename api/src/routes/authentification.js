@@ -34,7 +34,7 @@ const router = Router();
  *       201: { description: Compte créé }
  *       400: { description: Données invalides }
  */
-app.post("/auth/register", valider(schemaInscription), async (req, res) => {
+router.post("/auth/register", valider(schemaInscription), async (req, res) => {
   const { email, motDePasseClair, nom, prenom, telephone, note } = req.body;
   const compte = await prisma.compte.create({
     data: {
@@ -87,7 +87,7 @@ app.post("/auth/register", valider(schemaInscription), async (req, res) => {
  *       400: { description: Données invalides }
  *       401: { description: Identifiants invalides }
  */
-app.post("/auth/login", valider(schemaConnexion), async (req, res) => {
+router.post("/auth/login", valider(schemaConnexion), async (req, res) => {
   const { email, motDePasseClair } = req.body;
   const compte = await prisma.compte.findUnique({ where: { email } });
   if (
@@ -116,6 +116,6 @@ app.post("/auth/login", valider(schemaConnexion), async (req, res) => {
  *       204: { description: Déconnexion réussie }
  *       401: { description: Jeton absent ou invalide }
  */
-app.post("/auth/logout", authRequis, (req, res) => res.status(204).end)
+router.post("/auth/logout", authRequis, (req, res) => res.status(204).end())
 
 export default router;

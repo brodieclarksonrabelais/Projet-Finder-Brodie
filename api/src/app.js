@@ -278,35 +278,29 @@ app.get(
  *       401: { description: Jeton absent ou invalide }
  *       403: { description: Accès refusé }
  */
-app.get(
-  "/chambres",
-  authRequis,
-  exigeRole("hotelier"),
-  validerQuery(schemaRechercheChambre),
-  async (req, res) => {
-    const { hotel, capacite, categorie, prixMax, date_debut, date_fin } =
-      req.validatedQuery;
-    const where = {};
-    if (hotel) where.hotelId = Number(hotel);
-    if (capacite) where.capacite = { gte: Number(capacite) };
-    if (categorie) where.categorie = categorie;
-    if (prixMax) where.prixNuit = { lte: Number(prixMax) };
-    if (date_debut && date_fin) {
-      where.reservations = {
-        none: {
-          statut: "confirmee",
-          dateDepart: { gt: new Date(date_debut) },
-          dateArrivee: { lt: new Date(date_fin) },
-        },
-      };
-    }
-    const chambres = await prisma.chambre.findMany({
-      where,
-      orderBy: { id: "asc" },
-    });
-    res.json(chambres);
-  },
-);
+app.get("/chambres", validerQuery(schemaRechercheChambre), async (req, res) => {
+  const { hotel, capacite, categorie, prixMax, date_debut, date_fin } =
+    req.validatedQuery;
+  const where = {};
+  if (hotel) where.hotelId = Number(hotel);
+  if (capacite) where.capacite = { gte: Number(capacite) };
+  if (categorie) where.categorie = categorie;
+  if (prixMax) where.prixNuit = { lte: Number(prixMax) };
+  if (date_debut && date_fin) {
+    where.reservations = {
+      none: {
+        statut: "confirmee",
+        dateDepart: { gt: new Date(date_debut) },
+        dateArrivee: { lt: new Date(date_fin) },
+      },
+    };
+  }
+  const chambres = await prisma.chambre.findMany({
+    where,
+    orderBy: { id: "asc" },
+  });
+  res.json(chambres);
+});
 
 /**
  * @openapi
@@ -894,3 +888,5 @@ const spec = swaggerJsdoc({
 });
 
 app.use("/docs", swaggerUi.serve, swaggerUi.setup(spec));
+
+export default app;

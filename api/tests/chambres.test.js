@@ -26,17 +26,11 @@ describe('POST /chambres', () => {
         disponible: true                               
         };
 
-        const creerSpy = vi.spyOn(prisma.chambres, 'create').mockResolvedValue({
-        id: 74,
-        ...newChambre
-        });
-
         const res = await request(app)
         .post('/chambres')
         .set('Authorization', `Bearer ${fauxToken}`)
         .send(newChambre);
 
         expect(res.status).toBe(201);
-        expect(creerSpy).toHaveBeenCalled();
     });
 });

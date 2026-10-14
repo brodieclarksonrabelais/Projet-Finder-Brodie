@@ -35,3 +35,25 @@ describe("Post /login", () => {
         expect(res.status).toBe(400);
     });
 });
+
+describe("Post /register", () => {
+    it("enregistrement d'un utilisateur, renvoie 201", async () => {
+
+        vi.spyOn(prisma.comptes, 'findUnique').mockResolvedValue(null);
+
+        const reponse = await request(app).post('/auth/register').send({
+            email: "a.morel@mail.example",
+            motDePasseClaire: await bcrypt.hash("Voyage-2026!", 4),
+            role: 'voyageur',
+            hotelId: null
+        });
+
+        expect(reponse.status).toBe(201);
+    });
+
+    
+    it("renvoie 400 si le corps est vide", async () => {
+        const res = await request(app).post("/auth/register").send({});
+        expect(res.status).toBe(400);
+    });
+});

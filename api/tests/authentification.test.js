@@ -18,7 +18,7 @@ describe("Post /login", () => {
     vi.spyOn(prisma.compte, "findUnique").mockResolvedValue({
       id: 4,
       email: "a.morel@mail.example",
-      motDePasseClair: await bcrypt.hash("Voyage-2026!", 4), // hash du mot de passe envoyé
+      motDePasseClair: await bcrypt.hash("Voyage-2026!", 4),
       role: "voyageur",
       hotelId: null,
     });
@@ -79,7 +79,7 @@ describe("Post /register", () => {
 
     const reponse = await request(app).post("/auth/register").send({
       email: "a.morel@mail.example",
-      motDePasseClair: "Voyage-2026!", // en clair : l'API se charge du hash
+      motDePasseClair: "Voyage-2026!",
       nom: "Morel",
       prenom: "Alice",
     });

@@ -22,8 +22,8 @@ describe("GET /hotels", () => {
       nom: "Hôtel de test",
     });
 
-    // la route est /hotel/:id (au singulier) dans routes/hotels.js
     const res = await request(app).get(`/hotel/${hotelId}`);
+    console.log(res.text);
     expect(res.status).toBe(200);
   });
 });

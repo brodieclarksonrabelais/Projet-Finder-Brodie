@@ -17,6 +17,24 @@ app.use(reservationsRoutes);
 app.use(authRoutes);
 app.use(voyageursRoutes);
 
+/**
+ * @openapi
+ * /health:
+ *   get:
+ *     summary: Le serveur est lancé
+ *     tags: [Santé]
+ *     responses:
+ *       200:
+ *         description: Le serveur fonctionne
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 ok: { type: boolean, example: true }
+ */
+app.get("/health", (req, res) => res.json({ ok: true }));
+
 const spec = swaggerJsdoc({
   definition: {
     openapi: "3.0.0",

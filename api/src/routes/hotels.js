@@ -1,6 +1,6 @@
-import { Router } from 'express';
-import prisma from '../prisma.js';
-import { authRequis, exigeRole } from '../middlewares.js';
+import { Router } from "express";
+import prisma from "../prisma.js";
+import { authRequis, exigeRole } from "../middlewares.js";
 
 const router = Router();
 
@@ -48,11 +48,11 @@ router.get("/hotels", async (req, res) => {
  *       404: { description: Hotel introuvable }
  */
 router.get("/hotel/:id", async (req, res) => {
-  const { id } = Number(req.params);
-  const hotel = await prisma.hotel.findUnique({ where: { id: Number(id) } });
+  const id = Number(req.params.id);
   if (!Number.isInteger(id)) {
     return res.status(400).json({ erreur: "L'id doit être un nombre entier" });
   }
+  const hotel = await prisma.hotel.findUnique({ where: { id } });
   if (!hotel) return res.status(404).json({ erreur: "Hotel introuvable" });
   res.json(hotel);
 });

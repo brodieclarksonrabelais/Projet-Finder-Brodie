@@ -12,7 +12,7 @@ describe("GET /chambres", () => {
 });
 
 describe('POST /chambres', () => {
-    it('POST /chambres renvoie 201 si la chambre est créée', async () => {
+    it('chambres renvoie 201 si la chambre est créée', async () => {
         process.env.JWT_SECRET = 'secret_de_test';
         const fauxToken = jwt.sign({ id: 99, role: 'hotelier', hotelId: 2 }, process.env.JWT_SECRET);
 

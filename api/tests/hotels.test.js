@@ -1,17 +1,29 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi, afterEach } from "vitest";
 import request from "supertest";
 import app from "../src/app.js";
+import prisma from "../src/prisma.js";
+
+afterEach(() => {
+  vi.restoreAllMocks();
+});
 
 describe("GET /hotels", () => {
   it("recherche des hotels et renvoie 200", async () => {
-    const res = await request(app).get("/chambres");
+    vi.spyOn(prisma.hotel, "findMany").mockResolvedValue([]);
+
+    const res = await request(app).get("/hotels");
     expect(res.status).toBe(200);
   });
 
-    it("recherche des hotels avec un id et renvoie 200", async () => {
-        const hotel = 1;
-        const chambresFiltrees = await request(app).get(`/chambres?hotel=${hotel}`);
-      expect(chambresFiltrees.status).toBe(200);
+  it("recherche des hotels avec un id et renvoie 200", async () => {
+    const hotelId = 1;
+    vi.spyOn(prisma.hotel, "findUnique").mockResolvedValue({
+      id: hotelId,
+      nom: "Hôtel de test",
     });
 
+    // la route est /hotel/:id (au singulier) dans routes/hotels.js
+    const res = await request(app).get(`/hotel/${hotelId}`);
+    expect(res.status).toBe(200);
+  });
 });

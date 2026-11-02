@@ -1,10 +1,10 @@
 /// ESPACE POUR LES IMPORTS
-import { Router } from 'express';
-import prisma from '../prisma.js';
+import { Router } from "express";
+import prisma from "../prisma.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import { authRequis, valider } from '../middlewares.js';
-import {schemaInscription, schemaConnexion } from '../schemas.js';
+import { authRequis, valider } from "../middlewares.js";
+import { schemaInscription, schemaConnexion } from "../schemas.js";
 
 const router = Router();
 
@@ -99,7 +99,7 @@ router.post("/auth/login", valider(schemaConnexion), async (req, res) => {
   const token = jwt.sign(
     { userId: compte.id, role: compte.role, hotelId: compte.hotelId },
     process.env.JWT_SECRET,
-    { expiresIn: "24h" },
+    { expiresIn: "1h" },
   );
   res.json({ token });
 });
@@ -116,6 +116,6 @@ router.post("/auth/login", valider(schemaConnexion), async (req, res) => {
  *       204: { description: Déconnexion réussie }
  *       401: { description: Jeton absent ou invalide }
  */
-router.post("/auth/logout", authRequis, (req, res) => res.status(204).end())
+router.post("/auth/logout", authRequis, (req, res) => res.status(204).end());
 
 export default router;

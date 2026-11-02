@@ -6,7 +6,7 @@ jamais être faux NON MESURABLE : on ne peut pas trancher, à compter à part
 
 # Spec Finder - Sprint 1 [MINIMAL]
 
-Brodie : ... Version : v1 du AAAA-MM-JJ (étape 1)
+Équipe : ... Version : v1 du AAAA-MM-JJ (étape 1)
 Règle : relue au début de chaque séance ; chaque amendement est daté dans le
 journal.
 
@@ -15,7 +15,7 @@ journal.
 [✓] npm run dev démarre sans erreur -> le terminal affiche
 l'adresse du serveur
 [✓] GET /health -> 200, {"ok":true}
-[✓] Kit chargé une seule fois au démarrage -> readFileSync hors des
+[ ] Kit chargé une seule fois au démarrage -> readFileSync hors des
 routes
 [✓] GET /hotels -> 200, tableau de 3 hôtels
 [✓] GET /hotels/:id -> 200 la fiche, ou 404 avec
@@ -32,23 +32,46 @@ n'est pas commité
 poser de question
 [✓] GET /chambres?prix_max=89 -> 200, 12 chambres ; sans
 critère, 32
+M. Frébourg · SLAM · SIO2 · Projet 3005 · Finder · v 2026-10-14 Page 19 / 133
 
-## Étapes 2 à 8 - déclarées, non franchies
+## Étapes 2 à 9 - déclarées, non franchies
 
 [✓] E2 Base MySQL via Prisma : schéma, migration, seed du kit -> tables
 visibles dans Adminer
-[✓] E3 Recherche de chambres disponibles -> GET
+[✓] E3 Recherche : hôtel, capacité, prix, catégorie -> GET
 /chambres?... filtre
-[✓] E4 Inscription, connexion JWT 24 h, écritures protégées -> sans
+[✓] E4 Recherche : écarter les chambres déjà réservées -> les
+dates excluent la chambre 4
+[✓] E5 Inscription, connexion JWT 24 h, écritures protégées -> sans
 jeton 401, mauvais rôle 403
-[✓] E5 Validation Zod [ACCEPTABLE] -> corps
+[✓] E6 Validation Zod [ACCEPTABLE] -> corps
 invalide 400, jamais 500
-[✓] E6 Réservations et statuts ->
+[✓] E7 Réservations et statuts ->
 en_attente, confirmee, refusee, annulee
-[✓] E7 Documentation Swagger de toutes les routes -> /docs
+[✓] E8 Documentation Swagger de toutes les routes -> /docs
 les affiche toutes
-[ ] E8 Tests et recette -> npm test
+[✓] E9 Tests et recette -> npm test
 passe, TA-001 à TA-010
+
+# Spec Finder - Sprint 2 [MINIMAL/ACCEPTABLE]
+
+Version : v2 du 2026-11-02 (sprint 2, étape 1)
+
+## Sprint 2 - Étapes 1 à 6 - déclarées, non franchies
+
+[ ] S2 E1 Projet Vite + React et première fiche en props -> page « Amor » avec
+adresse et description, sans erreur en console
+[ ] S2 E2 Liste, état local et liste vide -> 12 chambres en liste, message si
+vide, clic sur 104 affiche son détail
+[ ] S2 E3 Page de recherche : formulaire et appel de l'API -> six critères,
+GET /chambres (32 sans critère), chargement et erreur sans page blanche
+[ ] S2 E4 Pages, navigation, jeton et routes protégées -> cinq pages sans
+rechargement, jeton en mémoire, /mes-reservations déconnecté renvoie à
+/connexion
+[ ] S2 E5 Réserver, annuler, écran à jour -> POST /reservations en_attente
+sans double envoi, annulation visible sans F5
+[ ] S2 E6 Migration TypeScript, blocs 1 à 3 [ACCEPTABLE] -> npx tsc --noEmit
+passe, un type par entité, aucun any non justifié
 
 ## Gardes
 
@@ -63,4 +86,6 @@ assez grand pour trancher
 
 ## Journal
 
-AAAA-MM-JJ ... création v1, étape 1
+2026-09-10 ... création v1, étape 1
+2026-11-02 ... début sprint 2, étape 1
+2026-11-02 ... v2 : déclaration des six étapes du sprint 2 (non cochées)

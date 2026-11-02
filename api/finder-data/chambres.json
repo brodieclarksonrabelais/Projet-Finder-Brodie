@@ -7,7 +7,8 @@
     "capacite": 1,
     "prix_nuit": 69,
     "description": "Lit simple, douche, bureau.",
-    "disponible": true
+    "disponible": true,
+    "etage": 1
   },
   {
     "id": 2,

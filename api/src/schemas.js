@@ -7,7 +7,7 @@ export const schemaInscription = z.object({
     .min(6, { message: "Le mot de passe doit faire au moins 6 caractères" }),
   nom: z.string(),
   prenom: z.string(),
-  telephone: z.string().optional(),
+  telephone: z.string(),
   note: z.string().optional(),
 });
 
@@ -25,6 +25,7 @@ export const schemaCreationChambre = z.object({
   prixNuit: z.number().positive(),
   description: z.string().optional(),
   hotelId: z.number().int().positive(),
+  etage: z.number().int().optional(),
 });
 
 export const schemaModificationChambre = schemaCreationChambre.partial();

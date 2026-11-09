@@ -28,6 +28,27 @@ const chambre = {
   etage: 1,
 };
 
+const chambre2 = {
+  id: 2,
+  hotelId: 1,
+  numero: "102",
+  categorie: "double",
+  capacite: 2,
+  prixNuit: 95,
+  description: "Lit simple, douche, bureau.",
+  disponible: true,
+};
+const chambre3 = {
+  id: 3,
+  hotelId: 1,
+  numero: "103",
+  categorie: "familiale",
+  capacite: 4,
+  prixNuit: 149,
+  description: "Lit simple, douche, bureau.",
+  disponible: true,
+};
+
 // function App() {
 //   return (
 //     <div className="App">
@@ -41,7 +62,7 @@ export default function App() {
     <>
       <FicheHotel hotel={hotel} />
       <FicheChambre chambre={chambre} />
-      <ListeChambres chambres={[chambre]} />
+      <ListeChambres chambres={[chambre, chambre2, chambre3]} />
     </>
   );
 }

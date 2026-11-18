@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { API } from "../config";
 import ListeChambres from "../composants/ListeChambres";
 import FicheChambre from "../composants/FicheChambre";
@@ -13,95 +13,94 @@ const CRITERES_VIDES = {
   categorie: "",
 };
 
-// Un champ vide ne part pas dans la query string
+// Un champ vide ne part pas : sinon l'API filtrerait sur une chaîne vide.
+// encodeURIComponent protège espaces et accents dans l'URL.
 function construireQuery(criteres) {
-  const params = new URLSearchParams();
-  Object.entries(criteres).forEach(([cle, valeur]) => {
-    if (valeur !== "") params.append(cle, valeur);
-  });
-  return params.toString();
+  return Object.entries(criteres)
+    .filter(([, valeur]) => valeur !== "")
+    .map(([cle, valeur]) => `${cle}=${encodeURIComponent(valeur)}`)
+    .join("&");
 }
 
 export default function Recherche() {
-  // Ce qui est tapé dans le formulaire (champs contrôlés)
-  const [saisie, setSaisie] = useState(CRITERES_VIDES);
-  // Le critère validé : il pilote l'effet. Au montage, il est vide : on charge tout.
-  const [critere, setCritere] = useState(CRITERES_VIDES);
-  // Compteur de soumissions : permet de relancer la même recherche deux fois
-  const [soumissions, setSoumissions] = useState(0);
+  // Ce que l'utilisateur TAPE : un objet à six clés (formulaire contrôlé)
+  const [criteres, setCriteres] = useState(CRITERES_VIDES);
+  // Ce qu'il a VALIDÉ : c'est de lui que dépendent les effets
+  const [valides, setValides] = useState(CRITERES_VIDES);
+  // Compteur de soumissions : relance l'appel même si les critères sont identiques
+  const [version, setVersion] = useState(0);
 
+  // Les données, le chargement, l'erreur
   const [chambres, setChambres] = useState([]);
+  const [hotel, setHotel] = useState(null);
   const [enChargement, setEnChargement] = useState(true);
   const [erreur, setErreur] = useState(null);
+
+  // La chambre dont on affiche la fiche
   const [selection, setSelection] = useState(null);
-  const [hotel, setHotel] = useState(null);
 
-  const hotelId = critere.hotel;
-
-  const modifier = (e) => {
-    const { name, value } = e.target;
-    setSaisie((precedent) => ({ ...precedent, [name]: value }));
-  };
-
-  // Appel au montage, puis à chaque soumission (critere ou soumissions change)
+  // Appel des chambres : au montage (critères vides = tout), puis à chaque soumission
   useEffect(() => {
     let annule = false;
-    const query = construireQuery(critere);
+    const q = construireQuery(valides);
 
-    fetch(`${API}/chambres${query ? `?${query}` : ""}`)
-      .then((reponse) => {
-        if (!reponse.ok) throw new Error(`HTTP ${reponse.status}`);
-        return reponse.json();
+    fetch(`${API}/chambres${q ? "?" + q : ""}`)
+      .then((r) => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.json();
       })
-      .then((donnees) => {
-        if (!annule) setChambres(donnees);
+      .then((data) => {
+        if (!annule) setChambres(data);
       })
       .catch(() => {
-        // API arrêtée (fetch lève) ou statut non-ok (levé plus haut)
         if (!annule) setErreur("Service indisponible, réessayez plus tard.");
       })
       .finally(() => {
-        // dans les deux cas, le chargement s'arrête
         if (!annule) setEnChargement(false);
       });
 
     return () => {
       annule = true;
     };
-  }, [critere, soumissions]);
+  }, [valides, version]);
 
   // Fiche de l'hôtel : seulement si le critère hotel est renseigné
   useEffect(() => {
-    if (hotelId === "") return; // vide : rien n'est appelé
+    if (valides.hotel === "") return; // vide : rien n'est appelé
     let annule = false;
 
-    fetch(`${API}/hotels/${encodeURIComponent(hotelId)}`)
-      .then((reponse) => {
-        if (!reponse.ok) throw new Error(`HTTP ${reponse.status}`);
-        return reponse.json();
+    fetch(`${API}/hotels/${encodeURIComponent(valides.hotel)}`)
+      .then((r) => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`); // un 404 devient une erreur
+        return r.json();
       })
-      .then((donnees) => {
-        if (!annule) setHotel(donnees);
+      .then((data) => {
+        if (!annule) setHotel(data);
       })
       .catch(() => {
-        // hôtel inconnu (404) ou API arrêtée
         if (!annule) setErreur("Hôtel introuvable ou service indisponible.");
       });
 
     return () => {
       annule = true;
     };
-  }, [hotelId, soumissions]);
+  }, [valides.hotel, version]);
 
-  const rechercher = (e) => {
+  function modifier(e) {
+    const { name, value } = e.target;
+    setCriteres((c) => ({ ...c, [name]: value }));
+  }
+
+  function rechercher(e) {
     e.preventDefault();
+    // Ce qui découle du clic se pose dans le gestionnaire, pas dans l'effet
     setEnChargement(true);
     setErreur(null);
     setSelection(null);
-    setHotel(null); // efface l'ancienne fiche avant la nouvelle recherche
-    setCritere({ ...saisie });
-    setSoumissions((n) => n + 1); // relance l'effet même si le critère est identique
-  };
+    setHotel(null);
+    setValides(criteres);
+    setVersion((v) => v + 1);
+  }
 
   return (
     <>
@@ -109,7 +108,7 @@ export default function Recherche() {
         <input
           type="number"
           name="hotel"
-          value={saisie.hotel}
+          value={criteres.hotel}
           onChange={modifier}
           placeholder="Hôtel (id)"
           min="1"
@@ -117,19 +116,19 @@ export default function Recherche() {
         <input
           type="date"
           name="date_debut"
-          value={saisie.date_debut}
+          value={criteres.date_debut}
           onChange={modifier}
         />
         <input
           type="date"
           name="date_fin"
-          value={saisie.date_fin}
+          value={criteres.date_fin}
           onChange={modifier}
         />
         <input
           type="number"
           name="capacite"
-          value={saisie.capacite}
+          value={criteres.capacite}
           onChange={modifier}
           placeholder="Capacité"
           min="1"
@@ -137,12 +136,12 @@ export default function Recherche() {
         <input
           type="number"
           name="prix_max"
-          value={saisie.prix_max}
+          value={criteres.prix_max}
           onChange={modifier}
           placeholder="Prix max (€)"
           min="0"
         />
-        <select name="categorie" value={saisie.categorie} onChange={modifier}>
+        <select name="categorie" value={criteres.categorie} onChange={modifier}>
           <option value="">Toutes catégories</option>
           <option value="simple">Simple</option>
           <option value="double">Double</option>
@@ -152,7 +151,8 @@ export default function Recherche() {
         <button type="submit">Rechercher</button>
       </form>
 
-      {enChargement && <p>Recherche en cours...</p>}
+      {/* Pas de sortie anticipée : le formulaire reste affiché pendant le chargement et après une erreur */}
+      {enChargement && <p>Chargement...</p>}
       {erreur && <p role="alert">{erreur}</p>}
 
       {hotel && <FicheHotel hotel={hotel} />}

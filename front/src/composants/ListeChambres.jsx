@@ -6,8 +6,7 @@ export default function ListeChambres({ chambres, onChoix }) {
     <ul>
       {chambres.map((c) => (
         <li key={c.id} onClick={() => onChoix(c)}>
-          Hôtel {c.hotelId} - Chambre {c.numero} - {c.categorie}, {c.capacite}{" "}
-          personnes, {c.prixNuit} €
+          Hôtel {c.hotelId} - Chambre {c.numero}
         </li>
       ))}
     </ul>

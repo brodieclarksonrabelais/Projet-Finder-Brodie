@@ -2,6 +2,7 @@ export default function FicheChambre({ chambre }) {
   return (
     <article>
       <h2>Chambre {chambre.numero}</h2>
+      <p>Numéro d'hotel {chambre.hotelId}</p>
       <p>Catégorie: {chambre.categorie}</p>
       <p>Capacité: {chambre.capacite}</p>
       <p>Prix par nuit: {chambre.prixNuit} €</p>

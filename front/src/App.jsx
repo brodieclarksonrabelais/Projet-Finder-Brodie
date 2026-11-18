@@ -2,6 +2,7 @@ import { useState } from "react";
 import FicheHotel from "./composants/FicheHotel";
 import FicheChambre from "./composants/FicheChambre";
 import ListeChambres from "./composants/ListeChambres";
+import Recherche from "./pages/Recherche";
 
 const hotel = {
   id: 3,
@@ -80,24 +81,32 @@ export default function App() {
   const [selection, setSelection] = useState(null);
 
   function ajouterMutation() {
-    chambres.push({ id: 99, numero: 999, categorie: "Test", prixNuit: 999 }); 
+    chambres.push({ id: 99, numero: 999, categorie: "Test", prixNuit: 999 });
     console.log("Nombre d'éléments du tableau :", chambres.length);
   }
 
-   function ajouterProprement() {
-    setChambres([...chambres, { id: 99, numero: 999, categorie: "Test", prixNuit: 999 }]); 
+  function ajouterProprement() {
+    setChambres([
+      ...chambres,
+      { id: 99, numero: 999, categorie: "Test", prixNuit: 999 },
+    ]);
   }
-  
 
   return (
     <>
-      <FicheHotel hotel={hotel} />
+      <h1>Finder</h1>
+      <Recherche />
       <p>Nombre de chambres : {chambres.length}</p>
-      <ListeChambres chambres={chambres} onChoix={setSelection} />
-      {selection && <FicheChambre chambre={selection} onFermer={() => setSelection(null)} />}
-      {selection && <button onClick={() => setSelection(null)}>Fermer la fiche</button>}
+      {/* <ListeChambres chambres={chambres} onChoix={setSelection} />
+      {selection && (
+        <FicheChambre chambre={selection} onFermer={() => setSelection(null)} />
+      )}
+      {selection && (
+        <button onClick={() => setSelection(null)}>Fermer la fiche</button>
+      )} */}
+      {/* <FicheHotel hotel={hotel} />
       <button onClick={ajouterMutation}>Ajouter une chambre (mutation)</button>
-      <button onClick={ajouterProprement}>Ajouter une chambre (proprement)</button>
+      <button onClick={ajouterProprement}>Ajouter une chambre (proprement)</button> */}
     </>
   );
 }

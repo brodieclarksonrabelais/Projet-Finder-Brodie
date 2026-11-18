@@ -7,9 +7,12 @@ import authRoutes from "./routes/authentification.js";
 import voyageursRoutes from "./routes/voyageurs.js";
 import swaggerJsdoc from "swagger-jsdoc";
 import swaggerUi from "swagger-ui-express";
+import cors from "cors";
 
 const app = express();
 app.use(express.json());
+
+app.use(cors({ origin: ["http://localhost:5173"] }));
 
 app.use(chambresRoutes);
 app.use(hotelsRoutes);
